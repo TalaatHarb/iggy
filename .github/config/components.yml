@@ -220,6 +220,7 @@ components:
       - "build-macos-aarch64"
       - "clippy-macos-aarch64"
       - "build-windows-sdk"
+      - "build-windows-server"
 
   # CLI component
   rust-cli:
