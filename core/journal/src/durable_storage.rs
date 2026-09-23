@@ -443,7 +443,10 @@ impl DurableFile for File {
     async fn truncate(&self, length: u64) -> io::Result<()> {
         // Older kernels lack IORING_OP_FTRUNCATE and shard fallback pools are
         // disabled. Own the inode until the worker completes, even on cancellation.
+        #[cfg(unix)]
         let descriptor = std::os::fd::AsFd::as_fd(self).try_clone_to_owned()?;
+        #[cfg(windows)]
+        let descriptor = std::os::windows::io::AsHandle::as_handle(self).try_clone_to_owned()?;
         run_blocking("iggy-file-truncate", move || {
             std::fs::File::from(descriptor).set_len(length)
         })
@@ -508,6 +511,7 @@ mod tests {
 
     const WORKER_TIMEOUT: Duration = Duration::from_secs(5);
 
+    #[cfg(unix)]
     #[compio::test]
     async fn given_symlink_when_target_disappears_should_report_target_absent() {
         let directory = tempfile::tempdir().unwrap();
@@ -550,6 +554,7 @@ mod tests {
         assert_eq!(paths.len(), entry_count);
     }
 
+    #[cfg(unix)]
     #[compio::test]
     async fn given_non_regular_entries_when_scanning_files_should_skip_them() {
         let directory = tempfile::tempdir().unwrap();

@@ -243,8 +243,13 @@ impl ConnectionInstaller for Rc<IggyMessageBus> {
         config: SharedTlsServerConfig,
         on_request: RequestHandler,
     ) {
-        let stream = fd_transfer::wrap_duped_fd(fd);
-        install_client_tcp_tls(self, meta, stream, config, on_request);
+        match fd_transfer::wrap_duped_fd(fd) {
+            Ok(stream) => install_client_tcp_tls(self, meta, stream, config, on_request),
+            Err(e) => warn!(
+                client_id = meta.client_id,
+                "failed to wrap delegated client TLS fd: {e}"
+            ),
+        }
     }
 
     fn install_client_wss_fd(
@@ -254,8 +259,13 @@ impl ConnectionInstaller for Rc<IggyMessageBus> {
         config: SharedTlsServerConfig,
         on_request: RequestHandler,
     ) {
-        let stream = fd_transfer::wrap_duped_fd(fd);
-        install_client_wss(self, meta, stream, config, on_request);
+        match fd_transfer::wrap_duped_fd(fd) {
+            Ok(stream) => install_client_wss(self, meta, stream, config, on_request),
+            Err(e) => warn!(
+                client_id = meta.client_id,
+                "failed to wrap delegated client WSS fd: {e}"
+            ),
+        }
     }
 
     fn client_meta(&self, client_id: u128) -> Option<Rc<ClientConnMeta>> {

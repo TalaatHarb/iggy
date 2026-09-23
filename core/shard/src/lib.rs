@@ -910,7 +910,7 @@ pub enum ShardFrame {
 const _: () = assert!(std::mem::size_of::<ShardFrame>() == std::mem::size_of::<LifecycleFrame>());
 
 // Every inbox slot pays for the largest variant, including consensus traffic.
-const MAX_SHARD_FRAME_SIZE: usize = 160;
+const MAX_SHARD_FRAME_SIZE: usize = if cfg!(windows) { 176 } else { 160 };
 const _: () = assert!(std::mem::size_of::<ShardFrame>() <= MAX_SHARD_FRAME_SIZE);
 
 impl ShardFrame {
